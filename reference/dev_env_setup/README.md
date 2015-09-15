@@ -23,4 +23,4 @@ to:
 from pygame import display
 </pre>
 
-The modified __init__.py for pygame (1.9.2a0) is present in this directory as pygame1.9.2a0__init__.py
+The modified \__init__.py for pygame (1.9.2a0) is present in this directory as pygame1.9.2a0__init__.py
