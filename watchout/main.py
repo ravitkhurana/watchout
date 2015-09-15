@@ -3,6 +3,9 @@ import enum
 
 
 class Color(enum.Enum):
+    """
+    Enumeration for common colors
+    """
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     BLUE = (0, 0, 255)
@@ -11,10 +14,16 @@ class Color(enum.Enum):
 
 
 class Constants(object):
+    """
+    Class to hold constants used in game
+    """
     GRAVITY = 1
 
 
 class GameState(object):
+    """
+    Class to maintain current state of the game
+    """
     def __init__(self):
         self.player = Player()
         self.obstacles = list()
@@ -25,11 +34,19 @@ class GameState(object):
         self.score = 0
 
     def update(self):
+        """
+        This method updates current game state by updating obstacles, checking
+        for collisions and incrementing the score. Set self.is_game_over if
+        a collision is detected.
+        """
         self.update_obstacles()
         self.check_collision()
         self.score += 1
 
     def spawn_obstacle(self):
+        """
+        This method spawns new obstacles if required.
+        """
         if self.prev_obstacle is None or self.resolution[0] - self.prev_obstacle.position[0] > 200:
             obstacle_dim = (20, 30)
             obstacle_pos = [self.resolution[0], self.road_y - obstacle_dim[1]]
@@ -37,6 +54,9 @@ class GameState(object):
             self.obstacles.append(self.prev_obstacle)
 
     def update_obstacles(self):
+        """
+        This method updates the position of all obstacles
+        """
         self.spawn_obstacle()
         obstacles_to_be_removed = list()
         for obstacle in self.obstacles:
@@ -47,6 +67,10 @@ class GameState(object):
             self.obstacles.remove(obstacle)
 
     def check_collision(self):
+        """
+        This method checks if any of the obstacle has collided with the
+        player. Sets self.is_game_over if a collision is detected.
+        """
         x_collision = False
         y_collision = False
         player_x1 = self.player.position[0]
@@ -71,6 +95,9 @@ class GameState(object):
 
 
 class Player(object):
+    """
+    Class to maintain player's state.
+    """
     def __init__(self):
         self.dimensions = None
         self.position = None
@@ -79,6 +106,11 @@ class Player(object):
         self.speed = 0
 
     def jump(self):
+        """
+        This method initiates a jump if player is not already in between a
+        jump. Otherwise, it just updates player's position according to
+        player's current speed and value of Constants.GRAVITY.
+        """
         if not self.in_jump:
             self.speed = 15
             self.position_before_jump = (self.position[0], self.position[1])
@@ -94,6 +126,9 @@ class Player(object):
 
 
 class Obstacle(object):
+    """
+    Class to maintain an obstacle's state.
+    """
     def __init__(self):
         self.dimensions = None
         self.position = None
@@ -104,6 +139,9 @@ class Obstacle(object):
 
 
 def main():
+    """
+    Main method which starts the game.
+    """
     pygame.init()
     # Initialize game state
     game_state = GameState()
@@ -112,10 +150,9 @@ def main():
     game_state.player.dimensions = (20, 50)
     game_state.player.position = [50, game_state.road_y - game_state.player.dimensions[1]]
     screen = pygame.display.set_mode(game_state.resolution)
-    assert isinstance(screen, pygame.Surface)
     pygame.display.set_caption("Watch Out!")
-    done = False
     clock = pygame.time.Clock()
+    done = False
     # Game loop
     while not done:
         # * Process events in the events queue
