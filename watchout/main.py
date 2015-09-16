@@ -31,10 +31,11 @@ class GameState(object):
     """
 
     def __init__(self):
+        self.charactor = Charactor()
         self.player = Player()
+        self.player.charactor = self.charactor
         self.obstacles = Obstacles()
         self.is_game_over = False
-        self.score = 0
 
     def update(self):
         """
@@ -42,43 +43,51 @@ class GameState(object):
         for collisions and incrementing the score. Set self.is_game_over if
         a collision is detected.
         """
-        self.player.update()
+        self.charactor.update()
         self.obstacles.update()
         self.check_collision()
-        self.score += 1
+        if not self.is_game_over:
+            self.player.score += 1
 
     def check_collision(self):
         """
         This method checks if any of the obstacle has collided with the
-        player. Sets self.is_game_over if a collision is detected.
+        charactor. Sets self.is_game_over if a collision is detected.
         """
-        x_collision = False
-        y_collision = False
-        player_x1 = self.player.position[0]
-        player_x2 = player_x1 + self.player.dimensions[0]
-        player_y1 = self.player.position[1]
-        player_y2 = player_y1 + self.player.dimensions[1]
+        charactor_x1 = self.charactor.position[0]
+        charactor_x2 = charactor_x1 + self.charactor.dimensions[0]
+        charactor_y1 = self.charactor.position[1]
+        charactor_y2 = charactor_y1 + self.charactor.dimensions[1]
         for obstacle in self.obstacles:
+            x_collision = False
+            y_collision = False
             obstacle_x1 = obstacle.position[0]
             obstacle_x2 = obstacle_x1 + obstacle.dimensions[0]
             obstacle_y1 = obstacle.position[1]
             obstacle_y2 = obstacle_y1 + obstacle.dimensions[1]
-            if obstacle_x1 > player_x2 or obstacle_x2 < player_x1:
-                x_collision = False
-            else:
+            if not (obstacle_x1 > charactor_x2 or obstacle_x2 < charactor_x1):
                 x_collision = True
-            if obstacle_y1 > player_y2 or obstacle_y2 < player_y1:
-                y_collision = False
-            else:
+            if not (obstacle_y1 > charactor_y2 or obstacle_y2 < charactor_y1):
                 y_collision = True
             if x_collision and y_collision:
                 self.is_game_over = True
+                break
 
 
 class Player(object):
 
     """
     Class to maintain player's state.
+    """
+    def __init__(self):
+        self.charactor = Charactor()
+        self.score = 0
+
+
+class Charactor(object):
+
+    """
+    Class to maintain charactor's state.
     """
 
     def __init__(self):
@@ -89,9 +98,9 @@ class Player(object):
 
     def jump(self):
         """
-        This method initiates a jump if player is not already in between a
-        jump. Otherwise, it just updates player's position according to
-        player's current velocity and value of Constants.GRAVITY.
+        This method initiates a jump if charactor is not already in between a
+        jump. Otherwise, it just updates charactor's position according to
+        charactor's current velocity and value of Constants.GRAVITY.
         """
         if not self.in_jump:
             self.velocity = [0, 15]
@@ -99,7 +108,7 @@ class Player(object):
 
     def update(self):
         """
-        This method updates player's position if the player is already in
+        This method updates charactor's position if the charactor is already in
         motion.
         """
         if self.in_jump:
@@ -180,8 +189,8 @@ class Game(object):
         pygame.init()
         # Initialize game state
         game_state = GameState()
-        game_state.player.dimensions = (20, 50)
-        game_state.player.position = [50, Constants.ROAD_Y - game_state.player.dimensions[1]]
+        game_state.charactor.dimensions = (20, 50)
+        game_state.charactor.position = [50, Constants.ROAD_Y - game_state.charactor.dimensions[1]]
         screen = pygame.display.set_mode(Constants.RESOLUTION)
         pygame.display.set_caption("Watch Out!")
         clock = pygame.time.Clock()
@@ -189,14 +198,14 @@ class Game(object):
         # Game loop
         while not done:
             # * Process events in the events queue
-            player_jump = False
+            charactor_jump = False
             for event in pygame.event.get():
                 assert isinstance(event, pygame.event.EventType)
                 if event.type == pygame.QUIT:
                     done = True
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
-                        player_jump = True
+                        charactor_jump = True
                     if event.key == pygame.K_r:
                         self.restart = True
                         done = True
@@ -204,8 +213,8 @@ class Game(object):
                         done = True
             if not game_state.is_game_over:
                 # * Perform calculations for movements, collision detection, etc.
-                if player_jump:
-                    game_state.player.jump()
+                if charactor_jump:
+                    game_state.charactor.jump()
                 game_state.update()
             # * Draw on screen
             screen.fill(Color.WHITE.value)
@@ -215,12 +224,12 @@ class Game(object):
             else:
                 text = font.render("Game Over Mayte!", True, Color.RED.value)
             screen.blit(text, ((screen.get_width() - text.get_width())/2, 50))
-            score_text = font.render("Your score: " + game_state.score.__str__(), True, Color.BLUE.value)
+            score_text = font.render("Your score: " + game_state.player.score.__str__(), True, Color.BLUE.value)
             screen.blit(score_text, ((screen.get_width() - score_text.get_width())/2, score_text.get_height() + 60))
-            # Draw player
-            player_x, player_y = game_state.player.position
-            player_w, player_h = game_state.player.dimensions
-            pygame.draw.rect(screen, Color.BLUE.value, [player_x, player_y, player_w, player_h], 0)
+            # Draw charactor
+            charactor_x, charactor_y = game_state.charactor.position
+            charactor_w, charactor_h = game_state.charactor.dimensions
+            pygame.draw.rect(screen, Color.BLUE.value, [charactor_x, charactor_y, charactor_w, charactor_h], 0)
             # Draw obstacles
             for obstacle in game_state.obstacles:
                 obstacle_x, obstacle_y = obstacle.position
@@ -228,7 +237,7 @@ class Game(object):
                 pygame.draw.rect(screen, Color.RED.value, [obstacle_x, obstacle_y, obstacle_w, obstacle_h], 0)
             # * Refresh screen
             pygame.display.flip()
-            # * Set maximun FPS
+            # * Set maximum FPS
             clock.tick(60)
         pygame.quit()
 
